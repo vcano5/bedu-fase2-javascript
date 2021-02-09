@@ -1,25 +1,25 @@
-var todos = [];
-
-Array.prototype.remove = function(from, to) {
-	var rest = this.slice((to || from) + 1 || this.length);
-	this.length = from < 0 ? this.length + from : from;
-	return this.push.apply(this, rest);
-  };
-
+var todos = {};
 
 var Todo = function(tarea) {
-	this.id = todos.length;
-	todos.length;
+
+	this.id = Date.now();
+
 	this.texto = tarea;
+
 	this.finalizada = false;
-	this.creado = new Date();
-	this.eliminar = () => {
-		todos.remove(this.id)
-		//todos.splice(this.id, 1);
+
+	this.eliminar = (id) => {
+		delete todos[id]
 		renderPendientes();
 	}
-	this.completar = () => {
-		todos[this.id].finalizada = true;
+
+	this.completar = (id) => {
+		todos[id].finalizada = true;
+		renderPendientes();
+	}
+
+	this.comenzar = (id) => {
+		todos[id].finalizada = false;
 		renderPendientes();
 	}
 }
@@ -28,28 +28,33 @@ var Todo = function(tarea) {
 function renderPendientes()  {
 	var TDContainer = document.querySelector('div#TodoContainer')
 	TDContainer.innerHTML = '';
-	for(tarea of todos) {
-		if(tarea.finalizada == false) {
-			var id = tarea.id;
+	for(id of Object.keys(todos)) {
+		var tarea = todos[id]
+		if(tarea.finalizada == false && tarea) {
+			let id = tarea.id;
 			var paragraph = document.createElement('p');
 			paragraph.innerText = tarea.texto;
 			paragraph.setAttribute('data-pendiente', tarea.id)
-			TDContainer.append(paragraph)
-
+			TDContainer.append(paragraph);
 
 			var deleteButton = document.createElement('button');
 			deleteButton.innerText = '🗑';
 			deleteButton.setAttribute('data-pendiente', tarea.id)
-			TDContainer.append(deleteButton);
+			paragraph.append(deleteButton);
 
 			deleteButton.addEventListener('click', function(e) {
-				todos[e.target.dataset.pendiente].eliminar();
+				let id = e.target.dataset.pendiente;
+				alert(id)
+				todos[id].eliminar(id);
+				
 			})
 
 			paragraph.addEventListener('click', (e) => {
-				todos[e.target.dataset.pendiente].completar();
-
+				let id = e.target.dataset.pendiente;
+				if(todos[id]) todos[id].completar(id);
 			})
+
+			
 
 		}
 		else {
@@ -58,14 +63,27 @@ function renderPendientes()  {
 			paragraph.style.textDecoration = "line-through";
 			TDContainer.append(paragraph)
 
+			var iniciarButton = document.createElement('button');
+			iniciarButton.innerText = '▶';
+			iniciarButton.setAttribute('data-pendiente', tarea.id)
+			paragraph.append(iniciarButton)
+
+			
+
 			var deleteButton = document.createElement('button');
 			deleteButton.innerText = '🗑';
 			deleteButton.setAttribute('data-pendiente', tarea.id)
-			TDContainer.append(deleteButton);
+			paragraph.append(deleteButton);
+
+			iniciarButton.addEventListener('click', function(e) {
+				let id = e.target.dataset.pendiente;
+				console.log(e)
+				todos[id].comenzar(id);
+			})
 
 			deleteButton.addEventListener('click', function(e) {
-				//document.querySelector(`[data-pendiente="${tarea.id}"]`)
-				todos[tarea.id].eliminar();
+				let id = e.target.dataset.pendiente;
+				todos[id].eliminar(id);
 			})
 		}
 	}
@@ -81,7 +99,7 @@ function renderApp() {
 
 
 	var instructionText = document.createElement('p');
-	var tutorial = document.createTextNode('To add a task, type it on the input field and click on \'Add\' button. To  complete a task, click once on it, and to delete a task, just clkick on the respective \'Delete\' button of the task.')
+	var tutorial = document.createTextNode('To add a task, type it on the input field and click on \'Add\' button. To  complete a task, click once on it, and to delete a task, just click on the respective \'Delete\' button of the task.')
 	instructionText.append(tutorial);
 	app.appendChild(instructionText);
 
@@ -90,6 +108,7 @@ function renderApp() {
 	inputField.type = 'text';
 	inputField.placeholder = '✍ Type your task please'
 	app.appendChild(inputField);
+	inputField.focus();
 
 	var resetButton = document.createElement('button');
 	resetButton.id = 'resetInput';
@@ -112,7 +131,8 @@ function renderApp() {
 
 	addButton.addEventListener('click', (e) => {
 		if(inputField.value !== '') {
-			todos[todos.length] = new Todo(inputField.value);
+			var tarea = new Todo(inputField.value);
+			todos[tarea.id] = tarea;
 			inputField.value = "";
 			console.log(todos);
 			renderPendientes()
