@@ -37,14 +37,16 @@ function renderPendientes()  {
 			paragraph.setAttribute('data-pendiente', tarea.id)
 			TDContainer.append(paragraph);
 
+			var botones = document.createElement('div');
+			paragraph.appendChild(botones)
 			var deleteButton = document.createElement('button');
 			deleteButton.innerText = '🗑';
 			deleteButton.setAttribute('data-pendiente', tarea.id)
-			paragraph.append(deleteButton);
+			deleteButton.setAttribute('class', 'btn btn-outline-danger mt-2');
+			botones.append(deleteButton);
 
 			deleteButton.addEventListener('click', function(e) {
 				let id = e.target.dataset.pendiente;
-				alert(id)
 				todos[id].eliminar(id);
 				
 			})
@@ -63,21 +65,25 @@ function renderPendientes()  {
 			paragraph.style.textDecoration = "line-through";
 			TDContainer.append(paragraph)
 
+			var botones = document.createElement('div');
+			paragraph.appendChild(botones)
+
 			var iniciarButton = document.createElement('button');
 			iniciarButton.innerText = '▶';
 			iniciarButton.setAttribute('data-pendiente', tarea.id)
-			paragraph.append(iniciarButton)
+			iniciarButton.setAttribute('class', 'btn btn-outline-primary');
+			botones.append(iniciarButton)
 
 			
 
 			var deleteButton = document.createElement('button');
 			deleteButton.innerText = '🗑';
 			deleteButton.setAttribute('data-pendiente', tarea.id)
-			paragraph.append(deleteButton);
+			deleteButton.setAttribute('class', 'btn btn-outline-danger m-2');
+			botones.append(deleteButton);
 
 			iniciarButton.addEventListener('click', function(e) {
 				let id = e.target.dataset.pendiente;
-				console.log(e)
 				todos[id].comenzar(id);
 			})
 
@@ -89,11 +95,19 @@ function renderPendientes()  {
 	}
 }
 
+function agregarAPendientes(texto) {
+	var tarea = new Todo(texto);
+	todos[tarea.id] = tarea;
+	inputField.value = "";
+	renderPendientes()
+}
+
 function renderApp() {
 	var app = document.querySelector('div#app');
 
 	var titleText = document.createElement('h1');
 	var title = document.createTextNode('To Do List');
+	titleText.setAttribute('class', 'display-1')
 	titleText.appendChild(title);	
 	app.appendChild(titleText);
 
@@ -103,41 +117,44 @@ function renderApp() {
 	instructionText.append(tutorial);
 	app.appendChild(instructionText);
 
+	var toolbar = document.createElement('form');
+	toolbar.setAttribute('class', 'd-flex');
+	app.appendChild(toolbar);
+
 	var inputField = document.createElement('input');
 	inputField.id = 'inputField';
 	inputField.type = 'text';
 	inputField.placeholder = '✍ Type your task please'
-	app.appendChild(inputField);
+	inputField.setAttribute('class', 'w-100')
+	inputField.name = 'input'
+	toolbar.appendChild(inputField);
 	inputField.focus();
 
 	var resetButton = document.createElement('button');
 	resetButton.id = 'resetInput';
 	resetButton.innerHTML = '↩️';
-	app.appendChild(resetButton);
+	resetButton.setAttribute('class', 'btn btn-primary mx-2');
+	resetButton.type = "reset";
+	toolbar.appendChild(resetButton);
 
 	var addButton = document.createElement('button');
 	addButton.id = 'addToDo';
 	addButton.innerText = '➕';
-	app.appendChild(addButton);
+	addButton.setAttribute('class', 'btn btn-success');
+	addButton.type = "submit"
+	toolbar.appendChild(addButton);
 
 	var taskContainer = document.createElement('div');
 	taskContainer.class = 'to-dos';
 	taskContainer.id = 'TodoContainer';
 	app.appendChild(taskContainer);
 
-	resetButton.addEventListener('click', () => {
-		inputField.value = '';
-	})
-
-	addButton.addEventListener('click', (e) => {
-		if(inputField.value !== '') {
-			var tarea = new Todo(inputField.value);
-			todos[tarea.id] = tarea;
-			inputField.value = "";
-			console.log(todos);
-			renderPendientes()
-		}
-		
+	toolbar.addEventListener('submit', (e) => {
+		e.preventDefault(true)
+		var tarea = new Todo(inputField.value);
+		todos[tarea.id] = tarea;
+		toolbar.reset();
+		renderPendientes();
 	})
 }
 
